@@ -1,0 +1,56 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+.game-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.game-board {
+  display: inline-block;
+  margin-top: 20px;
+  position: relative;
+  width: 400px; /* 20 cells x 20px each */
+  height: 400px;
+  background-color: black; /* Black background */
+}
+
+.board {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  gap: 0;
+}
+
+.snake-cell {
+  background-color: #35de00; /* Green color */
+  position: absolute;
+  border-radius: 5px; /* Rounded corners for smooth look */
+}
+
+.food-cell {
+  position: absolute;
+  background-color: red;
+  border-radius: 4px; /* Match shape of snake segments */
+}
+
+.obstacle-cell {
+  position: absolute;
+  background-color: black;
+  border-radius: 5px;
+}
+
+button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
