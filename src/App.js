@@ -2,65 +2,43 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
-const BOARD_SIZE = 20;
 const CELL_SIZE = 20; // Each cell is 20px
 const MOVE_INTERVAL = 200; // Milliseconds between each move
 
 function App() {
-    const [gameState, setGameState] = useState(null);
+    const [snake, setSnake] = useState(null);
+    const [food, setFood] = useState(null);
     const [isGameOver, setIsGameOver] = useState(false);
-    const [direction, setDirection] = useState("RIGHT"); // Default direction is RIGHT
-    const [level, setLevel] = useState(1);
+    const [direction, setDirection] = useState("RIGHT");
 
-    // Fetch the current game state from the backend
-    const fetchGameState = async () => {
-        try {
-            const response = await axios.get("http://localhost:8080/snake-game/state");
-            setGameState(response.data);
-            setIsGameOver(response.data.gameOver);
-            setLevel(response.data.level);
-        } catch (error) {
-            console.error("Error fetching game state:", error);
-        }
-    };
-
-    // Reset the game state by calling the reset endpoint
     const resetGame = async () => {
-        try {
-            const response = await axios.post("http://localhost:8080/snake-game/reset");
-            setGameState(response.data); // Update the game state with the reset game
-            setIsGameOver(false); // Reset the gameOver state
-            setDirection("RIGHT"); // Reset direction to default
-        } catch (error) {
-            console.error("Error resetting game:", error);
-        }
-    };
-
-    // Move the snake in the current direction
-    const moveSnake = async (dir) => {
-        if (isGameOver) return;
-
-        try {
-            const response = await axios.post(
-                `http://localhost:8080/snake-game/move?direction=${dir}`
-            );
-            setGameState(response.data);
-            setIsGameOver(response.data.gameOver);
-            setLevel(response.data.level);
-        } catch (error) {
-            console.error("Error moving snake:", error);
-        }
+        axios.post("http://localhost:8080/snake-game/reset")
+            .then(response => {
+                setSnake(response.data.snake);
+                setFood(response.data.food)
+                setIsGameOver(false);
+                setDirection("RIGHT");
+            })
+            .catch(error => console.error("Error resetting game:", error));
     };
 
     // Game loop: Move the snake every MOVE_INTERVAL milliseconds
     useEffect(() => {
-        if (!isGameOver) {
-            const intervalId = setInterval(() => {
-                moveSnake(direction);
-            }, MOVE_INTERVAL);
+        if (isGameOver) return;
 
-            return () => clearInterval(intervalId); // Clean up the interval on unmount
-        }
+        const intervalId = setInterval(() => {
+            if (isGameOver) return;
+
+            axios.post(`http://localhost:8080/snake-game/move?direction=${direction}`)
+                .then(response => {
+                    setSnake(response.data.snake);
+                    setFood(response.data.food)
+                    setIsGameOver(response.data.gameOver);
+                })
+                .catch(error => console.error("Error moving snake:", error));
+        }, MOVE_INTERVAL);
+
+        return () => clearInterval(intervalId); // Clean up the interval on unmount
     }, [direction, isGameOver]); // Re-run the interval when direction or gameOver changes
 
     // Handle keypress to change the direction
@@ -102,28 +80,29 @@ function App() {
 
     // Render the game board
     const renderBoard = () => {
-        if (!gameState) return null;
-
-        const { snake, food, obstacles } = gameState;
+        if (!snake || !food) return null;
 
         return (
             <div className="board">
                 {/* Render Snake */}
                 {snake.body.map((segment, index) => {
-                    const style = {
-                        left: `${segment[0] * CELL_SIZE}px`,
-                        top: `${segment[1] * CELL_SIZE}px`,
-                        width: `${CELL_SIZE}px`,
-                        height: `${CELL_SIZE}px`,
-                        transition: `all ${MOVE_INTERVAL}ms linear`,
-                    };
+                    const isHead = index === 0;
+                    const tongueDirectionClass = isHead ? `snake-tongue ${direction.toLowerCase()}` : '';
+
                     return (
                         <div
                             key={index}
                             className="snake-cell"
-                            style={style}
+                            style={{
+                                left: `${segment[0] * CELL_SIZE}px`,
+                                top: `${segment[1] * CELL_SIZE}px`,
+                                width: `${CELL_SIZE}px`,
+                                height: `${CELL_SIZE}px`,
+                                transition: `all ${MOVE_INTERVAL}ms linear`,
+                            }}
                             onClick={handleSnakeClick} // Prevent clicks from affecting the game
-                        ></div>
+                        >{isHead && <div className={tongueDirectionClass}></div>}
+                        </div>
                     );
                 })}
 
@@ -137,18 +116,6 @@ function App() {
                         height: `${CELL_SIZE}px`,
                     }}
                 ></div>
-
-                {/* Render Obstacles */}
-                {obstacles &&
-                    obstacles.map((obstacle, index) => {
-                        const style = {
-                            left: `${obstacle[0] * CELL_SIZE}px`,
-                            top: `${obstacle[1] * CELL_SIZE}px`,
-                            width: `${CELL_SIZE}px`,
-                            height: `${CELL_SIZE}px`,
-                        };
-                        return <div key={index} className="obstacle-cell" style={style}></div>;
-                    })}
             </div>
         );
     };

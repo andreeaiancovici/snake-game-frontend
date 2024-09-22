@@ -8,47 +8,124 @@ body {
 }
 
 .game-board {
+  position: relative;
   display: inline-block;
   margin-top: 20px;
-  position: relative;
   width: 400px; /* 20 cells x 20px each */
   height: 400px;
-  background-color: black; /* Black background */
+  border-radius: 5px;
+  border: black 5px solid;
+  background-color: black;
 }
 
 .board {
   position: relative;
   width: 100%;
   height: 100%;
-  gap: 0;
 }
 
 .snake-cell {
-  background-color: #35de00; /* Green color */
   position: absolute;
-  border-radius: 5px; /* Rounded corners for smooth look */
+  border-radius: 5px;
+  background-color: #35de00; /* Snake body color */
+  width: 100%;
+  height: 100%;
+  border: 1px solid black; /* Thin black delimiter */
+  box-sizing: border-box;  /* Ensures the border doesn't affect the size of the cell */
+}
+
+.snake-tongue {
+  position: absolute;
+  background-color: red; /* Tongue color */
+  width: 5px;  /* Thin tongue */
+  height: 10px; /* Length of the tongue */
+  border-radius: 2px;
+  animation: flicker 0.3s infinite; /* Optional flickering animation */
+}
+
+/* Tongue facing upwards */
+.snake-tongue.up {
+  top: -12px; /* Place the tongue slightly outside the head */
+  left: 50%;
+  transform: translateX(-50%) rotate(0deg);
+}
+
+/* Tongue facing downwards */
+.snake-tongue.down {
+  bottom: -12px; /* Place the tongue below the head */
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+}
+
+/* Tongue facing left */
+.snake-tongue.left {
+  left: -12px; /* Place the tongue left outside the head */
+  top: 50%;
+  transform: translateY(-50%) rotate(270deg);
+}
+
+/* Tongue facing right (default) */
+.snake-tongue.right {
+  right: -12px; /* Place the tongue right outside the head */
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+}
+
+/* Forked sections of the tongue (bifurcation) */
+.snake-tongue::after,
+.snake-tongue::before {
+  content: "";
+  position: absolute;
+  background-color: red;
+  width: 2px;  /* Thin fork parts */
+  height: 5px; /* Length of the fork */
+  top: -5px;  /* Position forks at the tip of the main tongue */
+  border-radius: 1px;
+}
+
+/* Fork positioning */
+.snake-tongue::before {
+  left: -3px; /* Left fork */
+}
+.snake-tongue::after {
+  right: -3px; /* Right fork */
+}
+
+/* Simple bite animation */
+@keyframes biteAnimation {
+  0%, 100% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 50%, 50% 100%, 0% 50%); /* Open mouth */
+  }
+  50% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); /* Closed mouth */
+  }
+}
+
+/* Optional flickering animation for the tongue */
+@keyframes flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .food-cell {
   position: absolute;
-  background-color: red;
-  border-radius: 4px; /* Match shape of snake segments */
-}
-
-.obstacle-cell {
-  position: absolute;
-  background-color: black;
   border-radius: 5px;
+  background-color: red;
 }
 
 button {
   margin-top: 20px;
   padding: 10px 20px;
   font-size: 16px;
-  background-color: #007bff;
   color: white;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
+  background-color: #007bff;
 }
 
 button:hover {
